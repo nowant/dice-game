@@ -1,0 +1,40 @@
+<form [formGroup]="bettingForm" novalidate>
+  <fieldset [attr.disabled]="disabled ? 'disabled' : null">
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <label for="betAmountLabel">Bet Amount</label>
+        <input type="number"
+              id="betAmountLabel"
+              class="form-control form-control-lg"
+              placeholder="0.0"
+              formControlName="amount"
+              (keyup)="onInput($event)">
+      </div>
+      <div class="form-group col-md-6">
+        <label for="numberLabel">Number</label>
+        <input type="number"
+              class="form-control form-control-lg"
+              id="numberLabel"
+              placeholder="0.0"
+              formControlName="number"
+              (keyup)="onInput($event)">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 bet-high-row">
+        <button type="button"
+                class="btn btn-primary btn-lg btn-block"
+                (click)="onBetHigh()">
+          Bet High
+        </button>
+      </div>
+      <div class="col-md-6 bet-low-row">
+        <button type="button"
+                class="btn btn-primary btn-lg btn-block"
+                (click)="onBetLow()">
+          Bet Low
+        </button>
+      </div>
+    </div>
+  </fieldset>
+</form>

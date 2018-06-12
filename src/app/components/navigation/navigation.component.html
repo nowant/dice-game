@@ -1,0 +1,12 @@
+<nav class="navbar navbar-dark bg-dark text-white">
+    <a class="navbar-brand">Endpass Dice <span class="badge badge-primary">v1.0</span></a>
+    <div class="form-inline" novalidate>
+      <span>Balance: <span class="text-warning font-weight-bold">{{ balance }}</span> credits </span>
+      <button class="btn btn-outline-success btn-sm"
+              [disabled]="balance > 0"
+              (click)="onFreeCredits()"
+              data-toggle="popover" data-content="Disabled popover">
+        Free Credits
+      </button>
+    </div>
+  </nav>
