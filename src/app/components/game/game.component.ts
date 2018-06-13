@@ -90,7 +90,7 @@ export class GameComponent implements OnInit {
 
   private multiplyPlayerBalance(chance: number) {
     const payout = this.bettingService.checkPayout(chance);
-    const score = this.player.getBalance() * payout;
+    const score = this.player.getBalance() + this.player.getBetAmount() * payout;
     const roundedScore = this.toFixedPipe.transform(score, 1);
     this.player.setBalance(roundedScore);
   }

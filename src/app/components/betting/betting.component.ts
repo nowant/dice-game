@@ -16,11 +16,11 @@ export class BettingComponent implements OnInit {
 
   public betLowChance: BetChance = new BetChance();
 
-  public disabledGame: boolean;
+  public disabled = true;
+
+  public disabledBetButtons = true;
 
   public maxAmount: number;
-
-  public disabled = true;
 
   constructor(
     private player: Player,
@@ -34,6 +34,7 @@ export class BettingComponent implements OnInit {
   public onPlayerBalanceChange(balance: number) {
     this.maxAmount = balance;
     this.disabled = balance <= 0;
+    this.disabledBetButtons = !this.canToBet();
   }
 
   public onBetSumbit(bet: Bet) {
@@ -53,6 +54,7 @@ export class BettingComponent implements OnInit {
     this.updatePlayerWithNewBet(bet);
     this.showHighChance();
     this.showLowChance();
+    this.disabledBetButtons = !this.canToBet();
   }
 
   public showHighChance() {
@@ -75,8 +77,10 @@ export class BettingComponent implements OnInit {
     this.player.setBetAmount(bet.amount);
   }
 
-  private isPlayerBalanceValid() {
-    return this.player.getBalance() > 0;
+  private canToBet() {
+    return this.player.getBetAmount() <= this.player.getBalance()
+    && this.player.getBetAmount() > 0
+    && this.player.getNumber() > 0;
   }
 
   private isBetValid(bet: Bet) {

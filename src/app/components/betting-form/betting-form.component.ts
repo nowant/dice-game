@@ -1,10 +1,21 @@
 import {Component, OnInit, OnChanges, Input, Output, EventEmitter} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {FormBuilder, FormGroup, FormControl, Validators, ValidatorFn} from '@angular/forms';
 import {Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 import {CustomValidators} from 'ng4-validators';
 import {Bet} from '../../dto/bet.dto';
 import {BetType} from '../../constant';
+
+function numberValidator(control: FormControl) {
+  const pattern = /^0+(?=\d)/;
+  const value = control.value;
+
+  return !pattern.test(value) ? null : {
+    number: {
+      valid: false
+    }
+  };
+}
 
 @Component({
   selector: 'app-betting-form',
@@ -20,11 +31,11 @@ export class BettingFormComponent implements OnInit, OnChanges {
 
   @Input() disabled = true;
 
+  @Input() disabledBetButtons: boolean;
+
   @Output() submit = new EventEmitter();
 
   @Output() change = new EventEmitter();
-
-  public disabledBetButtons = true;
 
   private bettingForm: FormGroup;
 
@@ -34,8 +45,21 @@ export class BettingFormComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     this.bettingForm = this.formBuilder.group({
-      amount: ['', [Validators.required, CustomValidators.range([Number.MIN_VALUE, this.maxAmount])]],
-      number: ['', [Validators.required, CustomValidators.range([1, 100])]]
+      amount: [
+        '',
+        [
+          Validators.required,
+          CustomValidators.range([Number.MIN_VALUE, this.maxAmount])
+        ]
+      ],
+      number: [
+        '',
+        [
+          Validators.required,
+          CustomValidators.range([1, 100]),
+          numberValidator
+        ]
+      ]
     });
 
     this.subscribeToBetChanges();
@@ -93,7 +117,11 @@ export class BettingFormComponent implements OnInit, OnChanges {
   }
 
   private updateMaxAmountValidator() {
-    this.bettingForm.get('amount').setValidators([ Validators.required, CustomValidators.range([Number.MIN_VALUE, this.maxAmount]) ]);
+    this.bettingForm.get('amount').setValidators([
+      Validators.required,
+      CustomValidators.range([Number.MIN_VALUE, this.maxAmount]),
+      numberValidator
+    ]);
     this.bettingForm.get('amount').updateValueAndValidity();
   }
 
