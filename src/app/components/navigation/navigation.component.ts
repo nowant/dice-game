@@ -8,7 +8,6 @@ import {Player} from '../../models/player.model';
   styleUrls: ['./navigation.component.scss']
 })
 export class NavigationComponent implements OnInit, AfterViewInit {
-
   public balance = 0;
 
   constructor(
@@ -26,5 +25,4 @@ export class NavigationComponent implements OnInit, AfterViewInit {
   public onFreeCredits() {
     this.navigationService.ckickFreeCredits();
   }
-
 }

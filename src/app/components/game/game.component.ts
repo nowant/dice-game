@@ -6,72 +6,49 @@ import {DiceGame} from '../../models/game.model';
 import {Player} from '../../models/player.model';
 import {GameStatus} from '../../dto/game-status.dto';
 import {Bet} from '../../dto/bet.dto';
-import {BetType} from '../../constant';
-
+import {BetType, INCOME_NUM} from '../../constant';
+import {ToFixedPipe} from '../../pipes/to-fixed.pipe';
 @Component({
   selector: 'app-game',
   templateUrl: './game.component.html',
   styleUrls: ['./game.component.scss']
 })
 export class GameComponent implements OnInit {
-
   public gameStatus: GameStatus;
 
   public hiddenNumberFairHash: string;
-
-  public betHighChance: any;
-
-  public betLowChance: any;
-
-  public disabledGame: boolean;
-
-  public maxAmount: number;
 
   constructor(
     private game: DiceGame,
     private player: Player,
     private gameService: GameService,
     private bettingService: BettingService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private toFixedPipe: ToFixedPipe
   ) {}
 
   ngOnInit() {
-    this.startGame();
-    this.showHiddenNumberFairHash();
-    this.enableOrDisableGame();
+    this.loadPlayerBalance();
+    this.startNextGame();
     this.navigationService.freeCredits$.subscribe(() => this.onFreeCredits());
   }
 
-  public onNumber(bet: Bet) {
-    if (!this.isPlayerBalanceValid() || !this.isBetValid(bet)) {
-      return;
+  public onBet() {
+    if (this.isPlayerBalanceValid()) {
+      this.checkCurrentGame();
+      this.startNextGame();
+      this.savePlayerBalanace();
     }
-
-    this.updatePlayerWithBet(bet);
-    this.showBetChances();
-  }
-
-  public onBet(bet: Bet) {
-    if (!this.isPlayerBalanceValid()) {
-      return;
-    }
-
-    this.updatePlayerWithBet(bet);
-    this.checkGameResult();
-    this.startGame();
-    this.showHiddenNumberFairHash();
-    this.enableOrDisableGame();
   }
 
   public onFreeCredits() {
     if (!this.isPlayerBalanceValid()) {
-      this.updatePlayerBalance(100);
-      this.enableOrDisableGame();
-      this.maxAmount = this.player.getBalance();
+      this.player.setBalance(INCOME_NUM);
+      this.savePlayerBalanace();
     }
   }
 
-  public startGame() {
+  private prepareNextGame() {
     const hiddenNumber = this.gameService.generateRandomNumber();
     const hiddenNumberHash = <string>this.gameService.createFairHash(hiddenNumber);
 
@@ -81,82 +58,47 @@ export class GameComponent implements OnInit {
     this.game.startNextGame();
   }
 
-  public checkGameResult() {
+  private startNextGame() {
+    this.prepareNextGame();
+    this.showHiddenNumberFairHash();
+  }
+
+  private checkCurrentGame() {
     const hiddenNumber = this.game.getHiddenRandomNumber();
     const betType = this.player.getBetType();
     const number = this.player.getNumber();
 
+    let win = null, chance = null;
+
     if (betType === BetType.HIGH) {
-      const win = this.gameService.checkHighGameResult(number, hiddenNumber);
-      const status = new GameStatus(win, hiddenNumber);
-
-      if (win) {
-        const chance = this.bettingService.checkHighChance(number);
-        const payout = this.bettingService.checkPayout(chance);
-        const score = this.player.getBalance() * payout;
-        this.player.setBalance(score);
-      } else {
-        const score = this.player.getBalance() - this.player.getBetAmount();
-        this.player.setBalance(score);
-      }
-
-      this.maxAmount = this.player.getBalance();
-      this.showGameStatus(status);
-      return;
+      win = this.gameService.checkHighGameResult(number, hiddenNumber);
+      chance = this.bettingService.checkHighChance(number);
+    } else if (betType === BetType.LOW) {
+      win = this.gameService.checkLowGameResult(number, hiddenNumber);
+      chance = this.bettingService.checkLowChance(number);
     }
 
-    if (betType === BetType.LOW) {
-      const win = this.gameService.checkLowGameResult(number, hiddenNumber);
-      const status = new GameStatus(win, hiddenNumber);
-
-      if (win) {
-        const chance = this.bettingService.checkLowChance(number);
-        const payout = this.bettingService.checkPayout(chance);
-        const score = this.player.getBalance() * payout;
-        this.player.setBalance(score);
-      } else {
-        const score = this.player.getBalance() - this.player.getBetAmount();
-        this.player.setBalance(score);
-      }
-
-      this.maxAmount = this.player.getBalance();
-      this.showGameStatus(status);
-      return;
+    if (win) {
+      this.multiplyPlayerBalance(chance);
+    } else {
+      this.subtractPlayerBalance();
     }
+
+    const status = new GameStatus(win, hiddenNumber);
+    this.showGameStatus(status);
   }
 
-  public showHighChance() {
-    const number = this.player.getNumber();
-    const chance = this.bettingService.checkHighChance(number);
+  private multiplyPlayerBalance(chance: number) {
     const payout = this.bettingService.checkPayout(chance);
-
-    this.betHighChance = {chance, payout};
+    const score = this.player.getBalance() * payout;
+    const roundedScore = this.toFixedPipe.transform(score, 1);
+    this.player.setBalance(roundedScore);
   }
 
-  public showLowChance() {
-    const number = this.player.getNumber();
-    const chance = this.bettingService.checkLowChance(number);
-    const payout = this.bettingService.checkPayout(chance);
-
-    this.betLowChance = {chance, payout};
-  }
-
-  private updatePlayerWithBet(bet: Bet) {
-    this.player.setBetType(bet.type);
-    this.player.setNumber(bet.number);
-    this.player.setBetAmount(bet.amount);
-  }
-
-  private updatePlayerBalance(balance: number) {
-    this.player.setBalance(balance);
-  }
-
-  private isPlayerBalanceValid() {
-    return this.player.getBalance() > 0;
-  }
-
-  private isBetValid(bet: Bet) {
-    return bet instanceof Bet;
+  private subtractPlayerBalance() {
+    const score = this.player.getBalance() - this.player.getBetAmount();
+    const roundedScore = this.toFixedPipe.transform(score, 1);
+    this.player.setBalance(roundedScore);
   }
 
   private showHiddenNumberFairHash() {
@@ -167,12 +109,19 @@ export class GameComponent implements OnInit {
     this.gameStatus = gameStatus;
   }
 
-  private showBetChances() {
-    this.showHighChance();
-    this.showLowChance();
+  private loadPlayerBalance() {
+    const balance = +localStorage.getItem('balance');
+
+    if (balance > 0) {
+      this.player.setBalance(balance);
+    }
   }
 
-  private enableOrDisableGame() {
-    this.disabledGame = !this.isPlayerBalanceValid();
+  private savePlayerBalanace() {
+    localStorage.setItem('balance', this.player.getBalance().toString());
+  }
+
+  private isPlayerBalanceValid() {
+    return this.player.getBalance() > 0;
   }
 }

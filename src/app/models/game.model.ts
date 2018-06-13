@@ -5,7 +5,6 @@ import {Subject, Observable} from 'rxjs';
   providedIn: 'root'
 })
 export class DiceGame {
-
   private hiddenRandomNumber: number;
 
   private hiddenRandomNumberHash: string;
@@ -56,5 +55,4 @@ export class DiceGame {
     && typeof this.hiddenRandomNumber === 'number'
     && typeof this.hiddenRandomNumberHash === 'string';
   }
-
 }

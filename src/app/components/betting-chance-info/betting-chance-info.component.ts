@@ -1,4 +1,5 @@
 import {Component, Input} from '@angular/core';
+import {BetChance} from '../../dto/bet-chance.dto';
 
 @Component({
   selector: 'app-betting-chance-info',
@@ -6,5 +7,5 @@ import {Component, Input} from '@angular/core';
   styleUrls: ['./betting-chance-info.component.scss']
 })
 export class BettingChanceInfoComponent {
-  @Input() bettingChance: any;
+  @Input() bettingChance: BetChance;
 }

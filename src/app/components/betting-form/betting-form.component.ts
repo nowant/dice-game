@@ -1,6 +1,6 @@
 import {Component, OnInit, OnChanges, Input, Output, EventEmitter} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {Subject, Subscription} from 'rxjs';
+import {Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 import {CustomValidators} from 'ng4-validators';
 import {Bet} from '../../dto/bet.dto';
@@ -12,30 +12,34 @@ import {BetType} from '../../constant';
   styleUrls: ['./betting-form.component.scss']
 })
 export class BettingFormComponent implements OnInit, OnChanges {
+  @Input() betHighChance: any;
+
+  @Input() betLowChance: any;
 
   @Input() maxAmount = 0;
 
-  @Input() disabled: boolean;
+  @Input() disabled = true;
 
   @Output() submit = new EventEmitter();
 
   @Output() change = new EventEmitter();
 
+  public disabledBetButtons = true;
+
   private bettingForm: FormGroup;
 
   private inputSub = new Subject();
-
-  private inputSubscription: Subscription;
 
   constructor(private formBuilder: FormBuilder) {}
 
   ngOnInit() {
     this.bettingForm = this.formBuilder.group({
-      amount: ['', [Validators.required, CustomValidators.range([1, this.maxAmount])]],
+      amount: ['', [Validators.required, CustomValidators.range([Number.MIN_VALUE, this.maxAmount])]],
       number: ['', [Validators.required, CustomValidators.range([1, 100])]]
     });
 
     this.subscribeToBetChanges();
+    this.enableOrDisableBetButtons();
   }
 
   ngOnChanges(changes) {
@@ -57,12 +61,15 @@ export class BettingFormComponent implements OnInit, OnChanges {
   }
 
   private subscribeToBetChanges() {
-    this.inputSubscription = this.inputSub
+    this.inputSub
       .pipe(
-        debounceTime(200),
+        debounceTime(100),
         distinctUntilChanged()
       )
-      .subscribe(() => this.onBetChanges());
+      .subscribe(() => {
+        this.enableOrDisableBetButtons();
+        this.onBetChanges();
+      });
   }
 
   private onBetChanges() {
@@ -71,8 +78,7 @@ export class BettingFormComponent implements OnInit, OnChanges {
     }
 
     const {amount, number} = this.bettingForm.value;
-    const bet = new Bet(null, amount, number);
-
+    const bet = new Bet(null, +amount, +number);
     this.change.emit(bet);
   }
 
@@ -82,15 +88,16 @@ export class BettingFormComponent implements OnInit, OnChanges {
     }
 
     const {amount, number} = this.bettingForm.value;
-    const bet = new Bet(betType, amount, number);
-
+    const bet = new Bet(betType, +amount, +number);
     this.submit.emit(bet);
   }
 
   private updateMaxAmountValidator() {
-    this.bettingForm.get('amount').setValidators([ Validators.required, CustomValidators.range([1, this.maxAmount]) ]);
+    this.bettingForm.get('amount').setValidators([ Validators.required, CustomValidators.range([Number.MIN_VALUE, this.maxAmount]) ]);
     this.bettingForm.get('amount').updateValueAndValidity();
-
   }
 
+  private enableOrDisableBetButtons() {
+    this.disabledBetButtons = !this.bettingForm.valid;
+  }
 }

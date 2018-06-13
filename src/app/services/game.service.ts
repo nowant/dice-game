@@ -6,12 +6,7 @@ import {BettingService} from './betting.service';
   providedIn: 'root'
 })
 export class GameService {
-
   constructor(private md5: Md5) {}
-
-  /*public generateRandomNumber() {
-    return Math.random() * (BettingService.MAX_NUMBER - BettingService.MIN_NUMBER) + BettingService.MIN_NUMBER;
-  }*/
 
   public generateRandomNumber() {
     return Math.floor(Math.random() * (BettingService.MAX_NUMBER - BettingService.MIN_NUMBER + 1) + BettingService.MIN_NUMBER);
@@ -22,11 +17,10 @@ export class GameService {
   }
 
   public checkHighGameResult(number: number, hiddenNumber: number) {
-    return hiddenNumber > number;
+    return hiddenNumber >= number;
   }
 
   public checkLowGameResult(number: number, hiddenNumber: number) {
-    return hiddenNumber < number;
+    return hiddenNumber <= number;
   }
-
 }

@@ -3,3 +3,5 @@ export enum BetType {
   LOW
 }
 
+export const INCOME_NUM = 100;
+

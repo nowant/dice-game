@@ -14,7 +14,6 @@ const GameStatusClasses = {
   styleUrls: ['./game-status.component.scss']
 })
 export class GameStatusComponent implements OnInit, OnChanges {
-
   @Input() status: GameStatus;
 
   public statusClass: string;
@@ -56,5 +55,4 @@ export class GameStatusComponent implements OnInit, OnChanges {
     this.statusClass = GameStatusClasses.LOSE;
     this.statusText = `LOSE ${this.status.hiddenNumber} !`;
   }
-
 }

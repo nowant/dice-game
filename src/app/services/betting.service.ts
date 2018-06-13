@@ -1,15 +1,15 @@
 import {Injectable} from '@angular/core';
+import {ToFixedPipe} from '../pipes/to-fixed.pipe';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BettingService {
-
   public static MIN_NUMBER = 1;
 
   public static MAX_NUMBER = 100;
 
-  constructor() {}
+  constructor(private toFixedPipe: ToFixedPipe) {}
 
   public checkHighChance(randomNumber: number) {
     const number = BettingService.MAX_NUMBER - ((BettingService.MAX_NUMBER / 100 ) * randomNumber);
@@ -18,11 +18,11 @@ export class BettingService {
 
   public checkLowChance(randomNumber: number) {
     const percent = 100 / (BettingService.MAX_NUMBER / randomNumber);
-    return percent;
+    return this.toFixedPipe.transform(percent, 2);
   }
 
   public checkPayout(chanceNumber: number) {
-    return BettingService.MAX_NUMBER / chanceNumber;
+    const percent = BettingService.MAX_NUMBER / chanceNumber;
+    return this.toFixedPipe.transform(percent, 2);
   }
-
 }

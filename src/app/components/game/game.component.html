@@ -1,17 +1,6 @@
 <div class="row">
   <div class="col-12 col-sm-6 col-lg-8">
-    <app-betting-form [maxAmount]="maxAmount"
-                      [disabled]="disabledGame"
-                      (change)="onNumber($event)"
-                      (submit)="onBet($event)"></app-betting-form>
-    <div class="row">
-      <div class="col-md-6">
-        <app-betting-chance-info [bettingChance]="betHighChance"></app-betting-chance-info>
-      </div>
-      <div class="col-md-6">
-        <app-betting-chance-info [bettingChance]="betLowChance"></app-betting-chance-info>
-      </div>
-    </div>
+    <app-betting (bet)="onBet()"></app-betting>
   </div>
   <div class="col-6 col-lg-4">
     <app-game-status [status]="gameStatus"></app-game-status>

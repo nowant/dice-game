@@ -1,11 +1,10 @@
 import {Injectable} from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Player {
-
   private balance = 0;
 
   private betType: any;
@@ -58,5 +57,4 @@ export class Player {
   public getNumber() {
     return this.number;
   }
-
 }
