@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {Subject, BehaviorSubject, Observable} from 'rxjs';
 import {BetType} from '../constant';
 
 /**
@@ -31,14 +31,24 @@ export class Player {
   private number = 0;
 
   /**
+   * The balance income dispatcher
+   */
+  private balanceIncomeSubject = new Subject();
+
+  /**
    * The balance change dispatcher
    */
-  private balanceBs = new BehaviorSubject(0);
+  private balanceBehaviorSubject = new BehaviorSubject(0);
 
   /**
    * The balance change event
    */
-  public balance$ = this.balanceBs.asObservable();
+  public balance$ = this.balanceBehaviorSubject.asObservable();
+
+  /**
+   * The balance income event
+   */
+  public balanceIncome$ = this.balanceIncomeSubject.asObservable();
 
   /**
    * The method sets player's balance and dispatches player's balance change
@@ -46,7 +56,7 @@ export class Player {
   public setBalance(balance: number) {
     if (typeof balance === 'number') {
       this.balance = balance;
-      this.balanceBs.next(this.balance);
+      this.balanceBehaviorSubject.next(this.balance);
     }
   }
 
@@ -82,5 +92,11 @@ export class Player {
 
   public getNumber() {
     return this.number;
+  }
+
+  public dispatchBalanceIncome() {
+    if (this.balance > 0) {
+      this.balanceIncomeSubject.next(this.balance);
+    }
   }
 }

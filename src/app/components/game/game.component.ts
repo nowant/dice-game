@@ -56,9 +56,8 @@ export class GameComponent implements OnInit {
    */
   public onBet() {
     if (this.isPlayerBalanceValid()) {
-      this.checkCurrentGame();
+      this.finishCurrentGame();
       this.startNextGame();
-      this.savePlayerBalanace();
     }
   }
 
@@ -68,6 +67,7 @@ export class GameComponent implements OnInit {
   public onFreeCredits() {
     if (!this.isPlayerBalanceValid()) {
       this.player.setBalance(INCOME_NUM);
+      this.player.dispatchBalanceIncome();
       this.savePlayerBalanace();
     }
   }
@@ -75,13 +75,10 @@ export class GameComponent implements OnInit {
   /**
    * The method creates a new game state
    */
-  private prepareNextGame() {
+  private beforeStartGame() {
     // generates new game state
     const hiddenNumber = this.gameService.generateRandomNumber();
     const hiddenNumberHash = <string>this.gameService.createFairHash(hiddenNumber);
-
-    // flushes current game state
-    this.game.resetCurrentGame();
     // updates game with new state
     this.game.setHiddenRandomNumber(hiddenNumber);
     this.game.setHiddenRandomNumberHash(hiddenNumberHash);
@@ -92,8 +89,25 @@ export class GameComponent implements OnInit {
    * The method starts a new game
    */
   private startNextGame() {
-    this.prepareNextGame();
+    this.beforeStartGame();
     this.showHiddenNumberFairHash();
+  }
+
+  /**
+   * The method finishes current game
+   */
+  private finishCurrentGame() {
+    this.subtractAmountFromPlayerBalance();
+    this.checkCurrentGame();
+    this.savePlayerBalanace();
+    this.afterFinishGame();
+  }
+
+  /**
+   * flushes current game state
+   */
+  private afterFinishGame() {
+    this.game.resetCurrentGame();
   }
 
   /**
@@ -109,19 +123,17 @@ export class GameComponent implements OnInit {
     // checks whether a player wins or loses by his bet
     if (betType === BetType.HIGH) {
       win = this.gameService.checkHighGameResult(number, hiddenNumber);
-      // gets percent chance of current bet to use it for payout calculation
+      // gets percentage chance of current bet to use it for payout calculation
       chance = this.bettingService.checkHighChance(number);
     } else if (betType === BetType.LOW) {
       win = this.gameService.checkLowGameResult(number, hiddenNumber);
+      // gets percentage chance of current bet to use it for payout calculation
       chance = this.bettingService.checkLowChance(number);
     }
 
     if (win) {
       // increases player's balance
-      this.addScoreToPlayerBalance(chance);
-    } else {
-      // decreases player's balance
-      this.subtractScoreFromPlayerBalance();
+      this.addAmountToPlayerBalance(chance);
     }
 
     // views the game result
@@ -132,7 +144,7 @@ export class GameComponent implements OnInit {
   /**
    * The method calculates player's score when player wins
    */
-  private addScoreToPlayerBalance(chance: number) {
+  private addAmountToPlayerBalance(chance: number) {
     const balance = this.player.getBalance();
     const amount = this.player.getBetAmount();
     // gets win payout
@@ -150,7 +162,7 @@ export class GameComponent implements OnInit {
   /**
    * The method calculates player's score when player loses
    */
-  private subtractScoreFromPlayerBalance() {
+  private subtractAmountFromPlayerBalance() {
     const balance = this.player.getBalance();
     const amount = this.player.getBetAmount();
     // calculates lose score

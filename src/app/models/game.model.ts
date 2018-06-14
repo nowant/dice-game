@@ -27,12 +27,22 @@ export class DiceGame {
   /**
    * The next game dispatcher
    */
-  private nextGameSub = new Subject();
+  private nextGameSubject = new Subject<boolean>();
+
+  /**
+   * The next game dispatcher
+   */
+  private finishGameSubject = new Subject<boolean>();
 
   /**
    * The next game event
    */
-  public nextGame$ = this.nextGameSub.asObservable();
+  public nextGame$ = this.nextGameSubject.asObservable();
+
+  /**
+   * The finish game event
+   */
+  public finishGame$ = this.nextGameSubject.asObservable();
 
   constructor() {}
 
@@ -62,7 +72,7 @@ export class DiceGame {
   public startNextGame() {
     if (this.isNextGameReady()) {
       this.gameStarted = true;
-      this.nextGameSub.next();
+      this.nextGameSubject.next(this.gameStarted);
     }
   }
 
@@ -73,6 +83,7 @@ export class DiceGame {
     this.hiddenRandomNumber = undefined;
     this.hiddenRandomNumberHash = undefined;
     this.gameStarted = false;
+    this.finishGameSubject.next(true);
   }
 
   /**

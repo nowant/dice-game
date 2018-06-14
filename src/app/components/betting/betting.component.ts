@@ -1,5 +1,7 @@
 import {Component, OnInit, Output, EventEmitter} from '@angular/core';
+import {delay} from 'rxjs/operators';
 import {BettingService} from '../../services/betting.service';
+import {DiceGame} from '../../models/game.model';
 import {Player} from '../../models/player.model';
 import {Bet} from '../../dto/bet.dto';
 import {BetChance} from '../../dto/bet-chance.dto';
@@ -33,7 +35,7 @@ export class BettingComponent implements OnInit {
   /**
    * Ui disabling state of the bet form
    */
-  public disabled = true;
+  public disabled = false;
 
   /**
    * Ui disabling state of the bet buttons
@@ -46,13 +48,38 @@ export class BettingComponent implements OnInit {
   public maxAmount: number;
 
   constructor(
+    private game: DiceGame,
     private player: Player,
     private bettingService: BettingService
   ) {}
 
   ngOnInit() {
+    // subscribes to 'finish game' event
+    this.game.finishGame$
+      // delays game finish event (Logic Flow - p.3)
+      .pipe(delay(1000))
+      .subscribe(() => this.onFinishGame());
+
     // subscribes to player's 'Balance change' event
-    this.player.balance$.subscribe((b) => this.onPlayerBalanceChange(b));
+    this.player.balance$
+      .subscribe((b) => this.onPlayerBalanceChange(b));
+
+    // subscribes to player's 'Balance income' event
+    this.player.balanceIncome$
+      .subscribe((b) => this.onPlayerBalanceIncome(b));
+  }
+
+  /**
+   * The method is triggered when game is finished
+   */
+  public onFinishGame() {
+    if (this.player.getBalance() > 0) {
+      // enables the form for new bets
+      this.disabled = false;
+    } else {
+      // disables the form when the balance is zero
+      this.disabled = true;
+    }
   }
 
   /**
@@ -60,8 +87,15 @@ export class BettingComponent implements OnInit {
    */
   public onPlayerBalanceChange(balance: number) {
     this.maxAmount = balance;
-    this.disabled = balance <= 0;
     this.disabledBetButtons = !this.canToBet();
+  }
+
+  /**
+   * The method is triggered when player's balance is replenished
+   */
+  public onPlayerBalanceIncome(balance: number) {
+    // enables the form for new bets
+    this.disabled = false;
   }
 
   /**
@@ -74,6 +108,8 @@ export class BettingComponent implements OnInit {
 
     // updates player's state with new bet
     this.updatePlayerWithNewBet(bet);
+    // disables current form (prevents the bet buttons to be accidentally clicked twice (Logic Flow - p.3))
+    this.disabled = true;
     // dispatches the bet event to game component
     this.bet.emit();
   }
