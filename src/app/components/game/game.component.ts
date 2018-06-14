@@ -1,13 +1,13 @@
 import {Component, OnInit} from '@angular/core';
 import {GameService} from '../../services/game.service';
 import {BettingService} from '../../services/betting.service';
+import {ScoreService} from '../../services/score.service';
 import {NavigationService} from '../../services/navigation.service';
 import {DiceGame} from '../../models/game.model';
 import {Player} from '../../models/player.model';
 import {GameStatus} from '../../dto/game-status.dto';
 import {Bet} from '../../dto/bet.dto';
 import {BetType, INCOME_NUM} from '../../constant';
-import {ToFixedPipe} from '../../pipes/to-fixed.pipe';
 
 /**
  * The main component that manages the whole game
@@ -35,8 +35,8 @@ export class GameComponent implements OnInit {
     private player: Player,
     private gameService: GameService,
     private bettingService: BettingService,
-    private navigationService: NavigationService,
-    private toFixedPipe: ToFixedPipe
+    private scoreService: ScoreService,
+    private navigationService: NavigationService
   ) {}
 
   /**
@@ -118,10 +118,10 @@ export class GameComponent implements OnInit {
 
     if (win) {
       // increases player's balance
-      this.multiplyPlayerBalance(chance);
+      this.addScoreToPlayerBalance(chance);
     } else {
       // decreases player's balance
-      this.subtractPlayerBalance();
+      this.subtractScoreFromPlayerBalance();
     }
 
     // views the game result
@@ -132,23 +132,34 @@ export class GameComponent implements OnInit {
   /**
    * The method calculates player's score when player wins
    */
-  private multiplyPlayerBalance(chance: number) {
+  private addScoreToPlayerBalance(chance: number) {
+    const balance = this.player.getBalance();
+    const amount = this.player.getBetAmount();
     // gets win payout
     const payout = this.bettingService.checkPayout(chance);
     // calculates win score
-    const score = this.player.getBalance() + this.player.getBetAmount() * payout;
-    // gets win score rounded to 1 decimal place
-    const roundedScore = this.toFixedPipe.transform(score, 1);
-    this.player.setBalance(roundedScore);
+    const score = this.scoreService.addScore(
+      balance,
+      amount,
+      payout
+    );
+    // updates player's balance
+    this.player.setBalance(score);
   }
 
   /**
    * The method calculates player's score when player loses
    */
-  private subtractPlayerBalance() {
-    const score = this.player.getBalance() - this.player.getBetAmount();
-    const roundedScore = this.toFixedPipe.transform(score, 1);
-    this.player.setBalance(roundedScore);
+  private subtractScoreFromPlayerBalance() {
+    const balance = this.player.getBalance();
+    const amount = this.player.getBetAmount();
+    // calculates lose score
+    const score = this.scoreService.subtractScore(
+      balance,
+      amount
+    );
+    // updates player's balance
+    this.player.setBalance(score);
   }
 
   /**
