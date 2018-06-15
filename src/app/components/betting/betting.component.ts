@@ -94,8 +94,8 @@ export class BettingComponent implements OnInit {
    * The method is triggered when player's balance is replenished
    */
   public onPlayerBalanceIncome() {
-    // enables the form for new bets
-    this.disabled = false;
+    // enables or disables the form for new bets
+    this.disabled = this.player.getBalance() <= 0;
   }
 
   /**
