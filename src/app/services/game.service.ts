@@ -9,8 +9,6 @@ import {BettingService} from './betting.service';
   providedIn: 'root'
 })
 export class GameService {
-  constructor(private md5: Md5) {}
-
   /**
    * The method generates a random number
    */
@@ -22,7 +20,7 @@ export class GameService {
    * The method crypts a number to md5 hash string
    */
   public createFairHash(randomNumber: number) {
-    return this.md5.appendStr(randomNumber.toString()).end();
+    return Md5.hashStr(randomNumber.toString());
   }
 
   /**

@@ -1,11 +1,10 @@
 import {TestBed, inject} from '@angular/core/testing';
-import {Md5} from 'ts-md5/dist/md5';
 import {GameService} from './game.service';
 
 describe('GameService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [Md5, GameService]
+      providers: [GameService]
     });
   });
 
