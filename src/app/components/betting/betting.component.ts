@@ -66,7 +66,7 @@ export class BettingComponent implements OnInit {
 
     // subscribes to player's 'Balance income' event
     this.player.balanceIncome$
-      .subscribe((b) => this.onPlayerBalanceIncome(b));
+      .subscribe(() => this.onPlayerBalanceIncome());
   }
 
   /**
@@ -93,7 +93,7 @@ export class BettingComponent implements OnInit {
   /**
    * The method is triggered when player's balance is replenished
    */
-  public onPlayerBalanceIncome(balance: number) {
+  public onPlayerBalanceIncome() {
     // enables the form for new bets
     this.disabled = false;
   }
